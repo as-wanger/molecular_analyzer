@@ -39,8 +39,9 @@ types_listctrldata = {
     6: ("peptide types", "sheet for", "this table"),
 }
 
-input_listctrldata = dict()
-result_listctrldata = dict()
+input_listctrldata = {1: ("Input data will be here.")}
+matters_listctrldata = {1: ("ex: CH3", "CH3->15")}
+result_listctrldata = {1: ("type number", "1")}
 
 name_list = ['lambda=0', 'lambda=0.05', 'lambda=0.0', 'lambda=0.15']
 num_list = [52.4, 57.8, 59.1, 54.6]
@@ -56,7 +57,7 @@ class TestListCtrl(wx.ListCtrl,
         listmix.ListCtrlAutoWidthMixin.__init__(self)
         listmix.TextEditMixin.__init__(self)
 
-    def Populate(self):
+    def Populate_mw(self):
         # for normal, simple columns, you can add them like this:
         self.InsertColumn(0, "A")
         self.InsertColumn(1, "B")
@@ -75,7 +76,7 @@ class TestListCtrl(wx.ListCtrl,
 
         self.currentItem = 0
 
-    def Populate2(self):
+    def Populate_type(self):
         self.InsertColumn(0, "A")
         self.InsertColumn(1, "B")
         self.InsertColumn(2, "C")
@@ -93,7 +94,7 @@ class TestListCtrl(wx.ListCtrl,
 
         self.currentItem = 0
 
-    def Populate3(self):
+    def Populate_input(self):
         self.InsertColumn(0, "A")
 
         items = input_listctrldata.items()
@@ -105,7 +106,7 @@ class TestListCtrl(wx.ListCtrl,
 
         self.currentItem = 0
 
-    def Populate4(self):
+    def Populate_result(self):
         self.InsertColumn(0, "A")
         self.InsertColumn(1, "B")
 
@@ -118,6 +119,20 @@ class TestListCtrl(wx.ListCtrl,
         self.SetColumnWidth(0, wx.LIST_AUTOSIZE)
         self.SetColumnWidth(1, wx.LIST_AUTOSIZE)
 
+        self.currentItem = 0
+
+    def Populate_Matters(self):
+        self.InsertColumn(0, "Matters")
+        self.InsertColumn(1, "Formula")
+
+        items = matters_listctrldata.items()
+        for key, data in items:
+            index = self.InsertItem(self.GetItemCount(), str(data[0]))
+            self.SetItem(index, 1, str(data[1]))
+            self.SetItemData(index, key)
+
+        self.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+        self.SetColumnWidth(1, wx.LIST_AUTOSIZE)
         self.currentItem = 0
 
     # well... This function didn't be used, but search for self.GetItem only
@@ -155,36 +170,45 @@ class Frame(wx.Frame):
                                      # Content of list as instructions is nonsense with auto-sort enabled
                                      | wx.LC_HRULES | wx.LC_VRULES
                                )
-        mw_list.Populate()
+        mw_list.Populate_mw()
         types_list = TestListCtrl(pnl, 11, size=(1080, 250),
                                   style=wx.LC_REPORT
                                         | wx.BORDER_NONE
                                         # | wx.LC_SORT_ASCENDING
                                         | wx.LC_HRULES | wx.LC_VRULES
                                   )
-        types_list.Populate2()
-        input_list = TestListCtrl(pnl, 12, size=(540, 200),
+        types_list.Populate_type()
+        input_list = TestListCtrl(pnl, 12, size=(280, 200),
                                   style=wx.LC_REPORT
                                         | wx.BORDER_NONE
                                         # | wx.LC_SORT_ASCENDING
                                         | wx.LC_HRULES | wx.LC_VRULES
                                   )
-        input_list.Populate3()
-        result_list = TestListCtrl(pnl, 13, size=(540, 200),
+        input_list.Populate_input()
+        matter_list = TestListCtrl(pnl, 13, size=(400, 200),
                                    style=wx.LC_REPORT
                                          | wx.BORDER_NONE
                                          # | wx.LC_SORT_ASCENDING
                                          | wx.LC_HRULES | wx.LC_VRULES
                                    )
-        result_list.Populate4()
+        matter_list.Populate_Matters()
+        result_list = TestListCtrl(pnl, 14, size=(400, 200),
+                                   style=wx.LC_REPORT
+                                         | wx.BORDER_NONE
+                                         # | wx.LC_SORT_ASCENDING
+                                         | wx.LC_HRULES | wx.LC_VRULES
+                                   )
+        result_list.Populate_result()
         self.mw_list = mw_list
         self.types_list = types_list
         self.input_list = input_list
+        self.matter_list = matter_list
         self.result_list = result_list
 
         for_mw = wx.StaticText(pnl, label="Molecular weight of Amino acid")
         for_types = wx.StaticText(pnl, label="Types of Peptide")
         for_input = wx.StaticText(pnl, label="Input data")
+        for_matters = wx.StaticText(pnl, label="Matters")
         for_result = wx.StaticText(pnl, label="Result data")
 
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -198,12 +222,16 @@ class Frame(wx.Frame):
         box2 = wx.BoxSizer(wx.HORIZONTAL)
         sub_box = wx.BoxSizer(wx.VERTICAL)
         sub_box2 = wx.BoxSizer(wx.VERTICAL)
+        sub_box3 = wx.BoxSizer(wx.VERTICAL)
         sub_box.Add(for_input)
         sub_box.Add(input_list, 22)
-        sub_box2.Add(for_result)
-        sub_box2.Add(result_list, 23)
+        sub_box2.Add(for_matters)
+        sub_box2.Add(matter_list, 23)
+        sub_box3.Add(for_result)
+        sub_box3.Add(result_list, 24)
         box2.Add(sub_box, 21)
         box2.Add(sub_box2, 21)
+        box2.Add(sub_box3, 21)
 
         sizer.Add(box1)
         sizer.Add(box2)
@@ -305,8 +333,10 @@ class Frame(wx.Frame):
             global mw_listctrldata
             global types_listctrldata
             global input_listctrldata
+            global matters_listctrldata
             mw_listctrldata.clear()
             types_listctrldata.clear()
+            matters_listctrldata.clear()
             for val in mw_df.itertuples():
                 mw_listctrldata[val[0]] = val[1:]
             for val in types_df.itertuples():
@@ -314,11 +344,13 @@ class Frame(wx.Frame):
             for val in input_df.itertuples():
                 input_listctrldata[val[0]] = val[1:]
             self.mw_list.ClearAll()
-            self.mw_list.Populate()
+            self.mw_list.Populate_mw()
             self.types_list.ClearAll()
-            self.types_list.Populate2()
+            self.types_list.Populate_type()
             self.input_list.ClearAll()
-            self.input_list.Populate3()
+            self.input_list.Populate_input()
+            self.matter_list.ClearAll()
+            self.matter_list.Populate_Matters()
 
             # pretreat the mw, types df for analyzing
             self.analyzer.aa = analyzer.pretreat_mw(mw_listctrldata)
@@ -405,6 +437,15 @@ class Frame(wx.Frame):
                 mw_name = dlg.mw_text.GetValue()
                 self.analyzer.add_matter(matter_name, formula_name, mw_name)
                 self.analyzer.enlarge_types()
+
+                global matters_listctrldata
+                i = 0
+                for k, v in self.analyzer.matter.items():
+                    matters_listctrldata[i] = (k, v)
+                    i += 1
+                self.matter_list.ClearAll()
+                self.matter_list.Populate_Matters()
+
                 wx.MessageBox(f"Save the appending matter Name:  {matter_name}\n"
                               f"Formula:  {formula_name}\n"
                               f"Molecular weight:  {mw_name}",
@@ -464,6 +505,8 @@ class Frame(wx.Frame):
             near_v = float(near_v)
 
             if self.input_df:
+                print(self.input_df)
+                print(self.analyzer.part)
                 if self.analyzer.check_the_parts(self.input_df, most_nums, first_v, near_v, self.analyzer.part):
                     wx.MessageBox("Result shows under:\n" + self.analyzer.output_log,
                                   "All possibilities", wx.ICON_NONE)
@@ -473,7 +516,7 @@ class Frame(wx.Frame):
                         result_listctrldata[i] = list(self.analyzer.counter.items())[i]
 
                     self.result_list.ClearAll()
-                    self.result_list.Populate4()
+                    self.result_list.Populate_result()
                 else:
                     if most_nums <= 0 or first_v <= 0 or near_v <= 0:
                         wx.MessageBox(f"most_nums should be positive integer\n"
@@ -482,11 +525,10 @@ class Frame(wx.Frame):
                                       "Error occurred!", wx.ICON_ERROR)
                     else:
                         wx.MessageBox(
-                            f"Invalid value! (Bigger or to smaller than biggest or smallest amino_acid or matter)",
+                            f"Invalid value! (Bigger than biggest or smaller than smallest amino_acid/matter)",
                             "Error occurred!", wx.ICON_ERROR)
             else:
                 wx.MessageBox("There's no data to compare", "Error occurred!", wx.ICON_ERROR)
-
 
     def OnDraw(self, event):
         if self.analyzer.counter:
@@ -522,7 +564,8 @@ class AppendTextEntryDialog(wx.Dialog):
 
         sizer = wx.BoxSizer(wx.VERTICAL)
 
-        label = wx.StaticText(self, -1, "Add a matter to Append all types (now have 31 types)")
+        label = wx.StaticText(self, -1,
+        f"Add a matter to Append all types (now have {len(types_listctrldata)*(len(matters_listctrldata)+1)} types)")
         label.SetHelpText("The peptides' tail append these matter")
         sizer.Add(label, 0, wx.ALIGN_CENTRE | wx.ALL, 5)
 
@@ -597,13 +640,13 @@ class AnalyzeTextEntryDialog(wx.Dialog):
 
         sizer = wx.BoxSizer(wx.VERTICAL)
 
-        label = wx.StaticText(self, -1, "Before analyzing, you have to set some limits")
+        label = wx.StaticText(self, -1, "Before analyzing, you have to set some arguments")
         label.SetHelpText("Set most_numbers_one_side, first_variation, near_variation")
         sizer.Add(label, 0, wx.ALIGN_CENTRE | wx.ALL, 5)
 
         box = wx.BoxSizer(wx.VERTICAL)
 
-        most_nums_label = wx.StaticText(self, -1, "Most numbers one side")
+        most_nums_label = wx.StaticText(self, -1, "Most numbers from one side")
         most_nums_label.SetHelpText("At most getting the numbers")
         box.Add(most_nums_label, 0, wx.ALIGN_CENTRE | wx.ALL, 5)
 

@@ -98,7 +98,6 @@ class Control:
         part = dict(sorted(part.items(), key=lambda x: x[1]))
         return part
 
-
     def all_compounds(self):
         for i in self.pep:
             amino_acid = self.standardization(i)
@@ -114,19 +113,16 @@ class Control:
 
     def check_the_parts(self, mw, most_nums, first_variation, near_variation, types):
         self.possible_container = []
-        if most_nums <= 0:
-            return 0
-        elif first_variation <= 0:
-            return 0
-        elif near_variation <= 0:
+        if most_nums <= 0 or first_variation <= 0 or near_variation <= 0:
             return 0
         else:
             trans_l = list(types.items())
+            minimum, maximum = int(trans_l[0][1][0]), int(trans_l[len(trans_l) - 1][1][0])
             for ele in mw:
                 ele = int(ele[0])
                 text = []
-                for i in range(len(trans_l)):
-                    if int(trans_l[0][1][0]) < ele < int(trans_l[len(trans_l) - 1][1][0]):
+                for i in range(1, len(trans_l)):
+                    if minimum < ele < maximum:
                         if ele < trans_l[i][1][0]:
                             if ele - trans_l[i - 1][1][0] < first_variation:
                                 text.append(f"{trans_l[i - 1][0]}: {trans_l[i - 1][1][0]}")
